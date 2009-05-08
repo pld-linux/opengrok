@@ -1,3 +1,11 @@
+#
+# Conditional build:
+%if "%{pld_release}" == "ti"
+%bcond_without	java_sun	# build with gcj
+%else
+%bcond_with	java_sun	# build with java-sun
+%endif
+
 %include	/usr/lib/rpm/macros.java
 Summary:	A wicked fast source browser
 Name:		opengrok
@@ -8,11 +16,21 @@ Group:		Development/Languages/Java
 Source0:	http://opensolaris.org/os/project/opengrok/files/%{name}-%{version}-src.tar.gz
 # Source0-md5:	131c14590db48da55fc5a1ff2509e878
 URL:		http://opensolaris.org/os/project/opengrok/
-BuildRequires:	java-sun
+BuildRequires:	ant
+BuildRequires:	ant-nodeps
+BuildRequires:	jakarta-bcel >= 5.1
+%{!?with_java_sun:BuildRequires:	java-gcj-compat-devel}
+BuildRequires:	java-lucene
+BuildRequires:	java-oro
+BuildRequires:	java-servletapi5
+%{?with_java_sun:BuildRequires:	java-sun}
 BuildRequires:	jflex
 BuildRequires:	jpackage-utils
 BuildRequires:	rpm-javaprov
 BuildRequires:	rpmbuild(macros) >= 1.300
+Requires:	ctags
+Requires:	group(servlet)
+Requires:	java-servletapi5
 Requires:	jpackage-utils
 BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
@@ -26,124 +44,55 @@ Teamware, ClearCase, Perforce and Bazaar. In other words it lets you
 grok (profoundly understand) the open source, hence the name OpenGrok.
 It is written in Java.
 
-%package doc
-Summary:	Manual for %{name}
-Summary(fr.UTF-8):	Documentation pour %{name}
-Summary(it.UTF-8):	Documentazione di %{name}
-Summary(pl.UTF-8):	Podręcznik dla %{name}
-Group:		Documentation
-
-%description doc
-Documentation for %{name}.
-
-%description doc -l fr.UTF-8
-Documentation pour %{name}.
-
-%description doc -l it.UTF-8
-Documentazione di %{name}.
-
-%description doc -l pl.UTF-8
-Dokumentacja do %{name}.
-
-%package javadoc
-Summary:	Online manual for %{name}
-Summary(pl.UTF-8):	Dokumentacja online do %{name}
-Group:		Documentation
-Requires:	jpackage-utils
-
-%description javadoc
-Documentation for %{name}.
-
-%description javadoc -l pl.UTF-8
-Dokumentacja do %{name}.
-
-%description javadoc -l fr.UTF-8
-Javadoc pour %{name}.
-
-%package demo
-Summary:	Demo for %{name}
-Summary(pl.UTF-8):	Pliki demonstracyjne dla pakietu %{name}
-Group:		Documentation
-Requires:	%{name} = %{epoch}:%{version}-%{release}
-
-%description demo
-Demonstrations and samples for %{name}.
-
-%description demo -l pl.UTF-8
-Pliki demonstracyjne i przykłady dla pakietu %{name}.
-
-%package manual
-Summary:	Tutorial for %{name}
-Group:		Documentation
-
-%description manual
-Manual for %{name}.
-
 %prep
 %setup -q -n %{name}-%{version}-src
-#%{__sed} -i -e 's,\r$,,' build.xml
+
+mv lib nolibs
+mkdir lib
+
+%{__sed} -i -e 's,\r$,,' conf/web.xml
 
 %build
 export JAVA_HOME="%{java_home}"
 
-required_jars="jaxp_parser_impl"
+# TODO: patch build.xml to use jflex from CLASSPATH
+jflex_jar=$(find-jar jflex)
+ln -sf $jflex_jar lib/JFlex.jar
+
+required_jars="jaxp_parser_impl jflex ant"
 CLASSPATH=$(build-classpath $required_jars)
 export CLASSPATH
 
-export LC_ALL=en_US # source code not US-ASCII
+%ant \
+	-Djavac.source=1.5 \
+	-Djavac.target=1.5 \
+	-Dfile.reference.ant.jar=$(find-jar ant) \
+	-Dfile.reference.bcel-5.1.jar=$(find-jar bcel) \
+	-Dfile.reference.jakarta-oro-2.0.8.jar=$(find-jar oro) \
+	-Dfile.reference.lucene-core-2.2.0.jar=$(find-jar lucene) \
+	-Dfile.reference.servlet-api.jar=$(find-jar servlet-api) \
 
-%ant
-%{__make}
+#	-Dfile.reference.lucene-spellchecker-2.2.0.jar}:\
+#	-Dfile.reference.org.apache.commons.jrcs.diff.jar}:\
+#	-Dfile.reference.org.apache.commons.jrcs.rcs.jar}:\
+#	-Dfile.reference.swing-layout-0.9.jar}:\
+#	-Dfile.reference.jmxremote_optional.jar}
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT%{_javadir}
+install -d $RPM_BUILD_ROOT{%{_sysconfdir}/%{name},%{_javadir}}
 
-# jars
-cp -a dist/%{srcname}.jar $RPM_BUILD_ROOT%{_javadir}/%{srcname}-%{version}.jar
-ln -s %{srcname}-%{version}.jar $RPM_BUILD_ROOT%{_javadir}/%{srcname}.jar
+cp -a dist/opengrok.jar $RPM_BUILD_ROOT%{_javadir}
+#     [echo] To run this application from the command line without Ant, try:
+#     [echo] java -cp "/usr/share/java/ant.jar:/usr/share/java/bcel.jar:/usr/share/java/oro.jar:/usr/share/java/lucene.jar:/home/users/glen/rpm/BUILD.noarch-linux/opengrok-0.7-src/lib/lucene-spellchecker-2.2.0.jar:/home/users/glen/rpm/BUILD.noarch-linux/opengrok-0.7-src/lib/org.apache.commons.jrcs.diff.jar:/home/users/glen/rpm/BUILD.noarch-linux/opengrok-0.7-src/lib/org.apache.commons.jrcs.rcs.jar:/usr/share/java/servlet-api.jar:/home/users/glen/rpm/BUILD.noarch-linux/opengrok-0.7-src/lib/swing-layout-0.9.jar:/home/users/glen/rpm/BUILD.noarch-linux/opengrok-0.7-src/lib/jmxremote_optional.jar:/home/users/glen/rpm/BUILD.noarch-linux/opengrok-0.7-src/dist/opengrok.jar" org.opensolaris.opengrok.index.Indexer
+cp -a dist/source.war $RPM_BUILD_ROOT%{_javadir}
+cp -a conf/web.xml
 
-# for jakarta packages:
-for a in dist/*.jar; do
-	jar=${a##*/}
-	cp -a dist/$jar $RPM_BUILD_ROOT%{_javadir}/${jar%%.jar}-%{version}.jar
-	ln -s ${jar%%.jar}-%{version}.jar $RPM_BUILD_ROOT%{_javadir}/$jar
-done
-
-# javadoc
-%if %{with javadoc}
-install -d $RPM_BUILD_ROOT%{_javadocdir}/%{srcname}-%{version}
-cp -a dist/docs/api/* $RPM_BUILD_ROOT%{_javadocdir}/%{srcname}-%{version}
-ln -s %{srcname}-%{version} $RPM_BUILD_ROOT%{_javadocdir}/%{srcname} # ghost symlink
-%endif
-
-# demo
-install -d $RPM_BUILD_ROOT%{_examplesdir}/%{name}-%{version}
-cp -a demo/* $RPM_BUILD_ROOT%{_examplesdir}/%{name}-%{version}
+#     [echo] Generating man page..
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%post javadoc
-ln -nfs %{srcname}-%{version} %{_javadocdir}/%{srcname}
-
 %files
 %defattr(644,root,root,755)
-%{_javadir}/*.jar
-
-%files doc
-%defattr(644,root,root,755)
-%doc docs/*
-
-%if 0
-%files demo
-%defattr(644,root,root,755)
-%{_examplesdir}/%{name}-%{version}
-%endif
-
-%if %{with javadoc}
-%files javadoc
-%defattr(644,root,root,755)
-%{_javadocdir}/%{srcname}-%{version}
-%ghost %{_javadocdir}/%{srcname}
-%endif
+%doc README.txt CHANGES.txt
