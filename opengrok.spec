@@ -1,11 +1,5 @@
 #
 # Conditional build:
-%if "%{pld_release}" == "ti"
-%bcond_without	java_sun	# build with gcj
-%else
-%bcond_with	java_sun	# build with java-sun
-%endif
-
 %include	/usr/lib/rpm/macros.java
 Summary:	A wicked fast source browser
 Name:		opengrok
@@ -19,11 +13,10 @@ URL:		http://opensolaris.org/os/project/opengrok/
 BuildRequires:	ant
 BuildRequires:	ant-nodeps
 BuildRequires:	jakarta-bcel >= 5.1
-%{!?with_java_sun:BuildRequires:	java-gcj-compat-devel}
 BuildRequires:	java-lucene
 BuildRequires:	java-oro
 BuildRequires:	java-servletapi5
-%{?with_java_sun:BuildRequires:	java-sun}
+BuildRequires:	jdk
 BuildRequires:	jflex
 BuildRequires:	jpackage-utils
 BuildRequires:	rpm-javaprov
