@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  OpenGrok Configuration file
+-->
+
+<java class="java.beans.XMLDecoder">
+ <object class="org.opensolaris.opengrok.configuration.Configuration">
+  <void property="dataRoot">
+   <string>/var/lib/opengrok/data</string>
+  </void>
+  <void property="sourceRoot">
+   <string>/var/lib/opengrok/src</string>
+  </void>
+ </object>
+</java>

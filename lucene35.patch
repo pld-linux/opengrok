@@ -1,0 +1,43 @@
+From 504bdd0e5a3ad449455c7bbb1703d20bbe258dc1 Mon Sep 17 00:00:00 2001
+From: Lubomir Rintel <lkundrak@v3.sk>
+Date: Mon, 28 Oct 2013 12:52:26 +0100
+Subject: [PATCH] Fix build with lucene 3.5
+
+---
+ src/org/opensolaris/opengrok/index/IndexDatabase.java | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/org/opensolaris/opengrok/index/IndexDatabase.java b/src/org/opensolaris/opengrok/index/IndexDatabase.java
+index 99df496..8dcb0cf 100644
+--- a/src/org/opensolaris/opengrok/index/IndexDatabase.java
++++ b/src/org/opensolaris/opengrok/index/IndexDatabase.java
+@@ -41,6 +41,7 @@ import org.apache.lucene.document.Document;
+ import org.apache.lucene.document.Fieldable;
+ import org.apache.lucene.index.IndexReader;
+ import org.apache.lucene.index.IndexWriter;
++import org.apache.lucene.index.IndexWriterConfig;
+ import org.apache.lucene.index.Term;
+ import org.apache.lucene.index.TermEnum;
+ import org.apache.lucene.queryParser.ParseException;
+@@ -53,6 +54,8 @@ import org.apache.lucene.store.FSDirectory;
+ import org.apache.lucene.store.LockFactory;
+ import org.apache.lucene.store.NoLockFactory;
+ import org.apache.lucene.store.SimpleFSLockFactory;
++import org.apache.lucene.util.Version;
++import org.apache.lucene.analysis.standard.StandardAnalyzer;
+ import org.opensolaris.opengrok.analysis.AnalyzerGuru;
+ import org.opensolaris.opengrok.analysis.Ctags;
+ import org.opensolaris.opengrok.analysis.Definitions;
+@@ -487,7 +490,8 @@ public class IndexDatabase {
+             indexReader = IndexReader.open(indexDirectory,false);
+             checker = new SpellChecker(spellDirectory);
+             //TODO below seems only to index "defs" , possible bug ?
+-            checker.indexDictionary(new LuceneDictionary(indexReader, "defs"));
++            IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_35, new StandardAnalyzer(Version.LUCENE_35));
++            checker.indexDictionary(new LuceneDictionary(indexReader,"defs"), config, true);
+             log.info("done");
+         } catch (IOException e) {
+             log.log(Level.SEVERE, "ERROR: Generating spelling: {0}", e);
+-- 
+1.8.3.1
+
