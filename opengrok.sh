@@ -26,10 +26,10 @@ MAIN_CLASS=org.opensolaris.opengrok.index.Indexer
 
 BASE_JARS="$BASE_JARS lucene.jar"
 BASE_JARS="$BASE_JARS lucene-contrib/lucene-spellchecker.jar"
-BASE_JARS="$BASE_JARS jakarta-oro.jar"
+BASE_JARS="$BASE_JARS oro.jar"
 BASE_JARS="$BASE_JARS opengrok-jrcs"
 BASE_JARS="$BASE_JARS bcel.jar"
-BASE_JARS="$BASE_JARS servlet.jar"
+BASE_JARS="$BASE_JARS servlet-api.jar"
 BASE_JARS="$BASE_JARS ant.jar"
 BASE_JARS="$BASE_JARS swing-layout.jar"
 BASE_JARS="$BASE_JARS opengrok.jar"
