@@ -8,7 +8,7 @@
 Summary:	Source browser and indexer
 Name:		opengrok
 Version:	0.11.1
-Release:	0.1
+Release:	0.3
 License:	CDDL
 Group:		Development/Tools
 Source0:	https://java.net/projects/opengrok/downloads/download/archive/%{name}-%{version}-src.tar.gz
@@ -24,8 +24,8 @@ BuildRequires:	docbook-dtd42-xml
 BuildRequires:	docbook-utils
 BuildRequires:	java-bcel >= 5.1
 BuildRequires:	java-cup
-BuildRequires:	java-lucene >= 3.1
-BuildRequires:	java-lucene-contrib >= 3.1
+BuildRequires:	java-lucene >= 3.5
+BuildRequires:	java-lucene-contrib >= 3.5
 BuildRequires:	java-oro
 BuildRequires:	java-servletapi
 BuildRequires:	jdk
@@ -33,9 +33,15 @@ BuildRequires:	jflex >= 1.4
 BuildRequires:	jpackage-utils
 BuildRequires:	rpm-javaprov
 BuildRequires:	rpmbuild(macros) >= 1.300
+Requires:	ant
 Requires:	ctags
 Requires:	group(servlet)
+Requires:	java-bcel
+Requires:	java-lucene >= 3.5
+Requires:	java-lucene-contrib >= 3.5
+Requires:	java-oro
 Requires:	java-servletapi
+Requires:	java-swing-layout
 Requires:	jpackage-utils
 BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
