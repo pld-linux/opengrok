@@ -8,13 +8,14 @@
 Summary:	Source browser and indexer
 Name:		opengrok
 Version:	0.11.1
-Release:	0.3
+Release:	0.5
 License:	CDDL
 Group:		Development/Tools
 Source0:	https://java.net/projects/opengrok/downloads/download/archive/%{name}-%{version}-src.tar.gz
 # Source0-md5:	beb185b056a678b4119eff0c89a62d6c
 Source1:	%{name}.sh
 Source2:	configuration.xml
+Source3:	tomcat-context.xml
 Patch0:		lucene35.patch
 Patch1:		jflex.patch
 URL:		http://opengrok.github.io/OpenGrok/
@@ -43,6 +44,7 @@ Requires:	java-oro
 Requires:	java-servletapi
 Requires:	java-swing-layout
 Requires:	jpackage-utils
+Requires:	tomcat
 BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -108,6 +110,7 @@ refentry2man < dist/opengrok.1.in > opengrok.1
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT{%{_sysconfdir}/%{name},%{_bindir},%{_mandir}/man1,%{_javadir}} \
 	$RPM_BUILD_ROOT%{_localstatedir}/lib/%{name}/{src,data} \
+	$RPM_BUILD_ROOT{%{_sysconfdir}/%{name},%{_tomcatconfdir},%{_datadir}/%{name}} \
 	$RPM_BUILD_ROOT%{_javadocdir}/%{name}
 
 #     [echo] To run this application from the command line without Ant, try:
@@ -126,8 +129,24 @@ ln -sf opengrok-jrcs-%{version}.jar \
 install -p %{SOURCE1} $RPM_BUILD_ROOT%{_bindir}/%{name}
 #cp -p opengrok.1 $RPM_BUILD_ROOT%{_mandir}/man1
 
+# Make love, not war!
+install -d $RPM_BUILD_ROOT%{_datadir}/%{name}/WEB-INF/lib
+unzip -q dist/source.war -d $RPM_BUILD_ROOT%{_datadir}/%{name}
+rm $RPM_BUILD_ROOT%{_datadir}/%{name}/WEB-INF/lib/jrcs.jar
+(IFS=:; for file in $(build-classpath \
+        bcel jakarta-oro swing-layout \
+        lucene lucene-contrib/lucene-spellchecker) \
+        %{_javadir}/opengrok.jar \
+        %{_javadir}/opengrok-jrcs.jar; do
+	ln -sf $file $RPM_BUILD_ROOT%{_datadir}/%{name}/WEB-INF/lib
+done)
+mv $RPM_BUILD_ROOT{%{_datadir}/%{name}/WEB-INF,%{_sysconfdir}/%{name}}/web.xml
+ln -sf %{_sysconfdir}/%{name}/web.xml $RPM_BUILD_ROOT%{_datadir}/%{name}/WEB-INF/web.xml
+cp -p %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/%{name}/tomcat-context.xml
+ln -sf %{_sysconfdir}/%{name}/tomcat-context.xml $RPM_BUILD_ROOT%{_tomcatconfdir}/%{name}.xml
+
 %if %{with javadoc}
-cp -a dist/javadoc $RPM_BUILD_ROOT%{_javadocdir}/%{name}
+cp -a dist/javadoc/* $RPM_BUILD_ROOT%{_javadocdir}/%{name}
 %endif
 
 # Configuration file configuration.xml
@@ -140,13 +159,17 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %doc CHANGES.txt LICENSE.txt README.txt doc/EXAMPLE.txt
 %dir %{_sysconfdir}/%{name}
-%config(noreplace) %{_sysconfdir}/%{name}/configuration.xml
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/configuration.xml
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/tomcat-context.xml
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/web.xml
+%{_tomcatconfdir}/%{name}.xml
 %attr(755,root,root) %{_bindir}/opengrok
 #%{_mandir}/man1/opengrok.1*
 %{_javadir}/opengrok-%{version}.jar
 %{_javadir}/opengrok.jar
 %{_javadir}/opengrok-jrcs-%{version}.jar
 %{_javadir}/opengrok-jrcs.jar
+%{_datadir}/%{name}
 %{_localstatedir}/lib/%{name}
 
 %if %{with javadoc}

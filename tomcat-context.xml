@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context path="/opengrok" docBase="/usr/share/opengrok" crossContext="true" allowLinking="true">
+	<Parameter name="DATA_ROOT" value="/var/lib/opengrok/data" override="false" />
+	<Parameter name="SRC_ROOT" value="/var/lib/opengrok/src" override="false" />
+</Context>
