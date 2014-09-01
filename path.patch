@@ -1,0 +1,11 @@
+--- opengrok-0.11.1-src/src/org/opensolaris/opengrok/configuration/Configuration.java~	2012-03-30 16:36:59.000000000 +0300
++++ opengrok-0.11.1-src/src/org/opensolaris/opengrok/configuration/Configuration.java	2014-09-01 07:56:52.366279201 +0300
+@@ -148,7 +148,7 @@
+         setHistoryCacheInDB(false);
+         setProjects(new ArrayList<Project>());
+         setRepositories(new ArrayList<RepositoryInfo>());
+-        setUrlPrefix("/source/s?");
++        setUrlPrefix("/opengrok/s?");
+         //setUrlPrefix("../s?"); // TODO generate relative search paths, get rid of -w <webapp> option to indexer !
+         setCtags(System.getProperty("org.opensolaris.opengrok.analysis.Ctags", "ctags"));
+         //below can cause an outofmemory error, since it is defaulting to NO LIMIT

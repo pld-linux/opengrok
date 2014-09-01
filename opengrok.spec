@@ -8,7 +8,7 @@
 Summary:	Source browser and indexer
 Name:		opengrok
 Version:	0.11.1
-Release:	0.5
+Release:	0.6
 License:	CDDL
 Group:		Development/Tools
 Source0:	https://java.net/projects/opengrok/downloads/download/archive/%{name}-%{version}-src.tar.gz
@@ -18,6 +18,7 @@ Source2:	configuration.xml
 Source3:	tomcat-context.xml
 Patch0:		lucene35.patch
 Patch1:		jflex.patch
+Patch2:		path.patch
 URL:		http://opengrok.github.io/OpenGrok/
 BuildRequires:	ant
 BuildRequires:	docbook-dtd42-sgml
@@ -60,6 +61,7 @@ grok (profoundly understand) the open source, hence the name OpenGrok.
 %setup -q -n %{name}-%{version}-src
 %patch0 -p1
 %patch1 -p1
+%patch2 -p1
 
 # nuke prebuilt stuff
 mv lib nolibs
@@ -71,10 +73,6 @@ sed 's,/var/opengrok/etc/configuration.xml,%{_sysconfdir}/%{name}/configuration.
 
 %build
 export JAVA_HOME="%{java_home}"
-
-# TODO: patch build.xml to use jflex from CLASSPATH
-#jflex_jar=$(find-jar jflex)
-#ln -sf $jflex_jar lib/JFlex.jar
 
 required_jars="jflex cup junit"
 CLASSPATH=$(build-classpath $required_jars)
