@@ -4,7 +4,6 @@
 # Conditional build:
 %bcond_with	javadoc		# don't build javadoc
 
-%include	/usr/lib/rpm/macros.java
 Summary:	Source browser and indexer
 Name:		opengrok
 Version:	0.11.1
